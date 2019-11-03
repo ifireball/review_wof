@@ -1,0 +1,2 @@
+FLASK_APP=review_wof
+FLASK_ENV=development

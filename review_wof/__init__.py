@@ -1,15 +1,14 @@
-#!/usr/bin/env python
 """review_wof.py - Build report of patches and reviews
 """
 from collections import Counter, OrderedDict
 from subprocess import check_output
 import json
-from six import iteritems, itervalues
-from six.moves import zip, range
-from pprint import pprint
 from functools import partial
 from time import time
-from matplotlib.pyplot import subplots, show
+from flask import Flask
+
+
+application = Flask(__name__)
 
 
 GERRIT_HOST = 'gerrit.ovirt.org'
@@ -25,7 +24,16 @@ patch_states = OrderedDict()
 people_states = OrderedDict()
 
 
-def main():
+@application.route('/')
+def index():
+    people, patch_state_counts = create_report()
+    return {
+        'people': people,
+        'patch_state_counts': patch_state_counts,
+    }
+
+
+def create_report():
     until = int(time())
     since = until - (60 * 60 * 24 * 30)
     patches = get_patches(GERRIT_HOST, PROJECTS, since, until)
@@ -37,7 +45,7 @@ def main():
     for user in BLACKLISTED_USERS:
         if user in people:
             del people[user]
-    report(people, patch_state_counts)
+    return people, patch_state_counts
 
 
 def get_patches(gerrit_host, projects, since, until):
@@ -77,51 +85,20 @@ def get_patches_from_query(gerrit_host, project, query=[]):
 
 def update_people_states(patch, people, since, until):
     state_for_person = {}
-    for state, finder in iteritems(people_states):
+    for state, finder in people_states.items():
         people_in_state = set(finder(patch, since, until))
         for person in people_in_state:
             state_for_person[person] = state
-    for person, state in iteritems(state_for_person):
+    for person, state in state_for_person.items():
         person_state_counters = people.setdefault(person, Counter())
         person_state_counters[state] += 1
 
 
 def update_patch_states(patch, patch_state_counts, since, until):
-    for state, predicate in reversed(list(iteritems(patch_states))):
+    for state, predicate in reversed(list(patch_states.items())):
         if predicate(patch, since, until):
             patch_state_counts[state] += 1
             break
-
-
-def report(people, patch_state_counts):
-    people = OrderedDict(sorted(
-        iteritems(people),
-        key=(lambda p: sum(itervalues(p[1]))),
-    ))
-    for name, counters in iteritems(people):
-        print "{}: {}".format(name, counters)
-    pprint(patch_state_counts)
-
-    fig, axes = subplots()
-    fig.set_tight_layout(True)
-    names = list(people)
-    numbers = list(range(0, len(names)))
-    lefts = [0] * len(names)
-    colors = ('red', 'orange', 'green')
-    for state, color in zip(people_states, colors):
-        values = [ctr[state] for ctr in itervalues(people)]
-        axes.barh(
-            numbers, values, label=state, left=lefts, align='center',
-            color=color
-        )
-        lefts = [sum(p) for p in zip(lefts, values)]
-
-    axes.set_yticks(numbers)
-    axes.set_yticklabels(names)
-    axes.legend(loc='lower right')
-    axes.grid(which='major', axis='x')
-
-    show()
 
 
 def state_decorator(state_predicate_map, state_name):
@@ -219,7 +196,3 @@ def people_who_voted_in_patchset(patchset, since, until):
         if approval['type'] not in REVIEW_FLAGS:
             continue
         yield user_key(approval['by'])
-
-
-if __name__ == '__main__':
-    main()
