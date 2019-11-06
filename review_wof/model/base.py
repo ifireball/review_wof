@@ -2,6 +2,7 @@
 """
 from abc import ABCMeta, abstractmethod
 from argparse import Namespace
+from collections.abc import Mapping
 
 
 class DataSource(metaclass=ABCMeta):
@@ -62,3 +63,33 @@ class GeneratorDSC(DataSource):
         for data_chunk in self._generate_data():
             self._data_to_views(data_chunk)
         self._eod_to_views()
+
+
+class FunctionSet(Mapping):
+    """A Mapping of named functions where functions can be added by decorating
+    them, and collectively called in various ways
+    """
+    def __init__(self):
+        self._funtions = {}
+
+    def __getitem__(self, key):
+        return self._funtions[key]
+
+    def __iter__(self):
+        return iter(self._funtions)
+
+    def __len__(self):
+        return len(self._funtions)
+
+    def member(self, name):
+        def decorator(func):
+            self._funtions[name] = func
+            return func
+        return decorator
+
+    def __call__(self, *args, **kwargs):
+        for key, func in self._funtions.items():
+            yield key, func(*args, **kwargs)
+
+    def first_true(self, *args, **kwargs):
+        return next((key for key, rv in self(*args, *kwargs) if rv), None)

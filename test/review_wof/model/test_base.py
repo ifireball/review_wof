@@ -1,7 +1,9 @@
-from unittest.mock import create_autospec, call
 from argparse import Namespace
+from collections import deque
+import pytest
+from unittest.mock import create_autospec, call, MagicMock
 
-from review_wof.model.base import DataSource, GeneratorDSC
+from review_wof.model.base import DataSource, GeneratorDSC, FunctionSet
 
 def test_data_source():
     class Adsc(DataSource):
@@ -81,3 +83,77 @@ def test_generator_dsc(monkeypatch):
     assert eod_to_views.mock_calls == [
         call(dsc),
     ]
+
+
+class TestFuncitonSet:
+    def test_setup_and_call(self):
+        func_set = FunctionSet()
+
+        @func_set.member('first func')
+        @create_autospec
+        def func1(a1, a2, kw1, kw2):
+            pass
+
+        @func_set.member('second func')
+        @create_autospec
+        def func2(*args, **kwargs):
+            pass
+
+        @func_set.member('third func')
+        @create_autospec
+        def func3(*args, **kwargs):
+            pass
+
+        expected_set = {
+            'first func': func1,
+            'second func': func2,
+            'third func': func3,
+        }
+
+        assert func_set == expected_set
+        # test that insertion order is preserved
+        assert list(func_set) == list(expected_set)
+        results = func_set('v1', 'v2', kw1='v3', kw2='v4')
+        other_funcs = deque(expected_set.values())
+        for (key, value), (expkey, func) in zip(results, expected_set.items()):
+            assert key == expkey
+            # Mark the return values we got
+            value.mark(key)
+            # check that the function was called and we got the results
+            assert func.mock_calls == [
+                call('v1', 'v2', kw1='v3', kw2='v4'),
+                call('v1', 'v2', kw1='v3', kw2='v4').mark(key),
+            ]
+            # Make sure other functions were not called yet
+            other_funcs.popleft()
+            for other_func in other_funcs:
+                assert other_func.mock_calls == []
+
+    @pytest.fixture
+    def truth_set_maker(self):
+        def make_set(truth_sequence):
+            func_set = FunctionSet()
+            for idx, value in enumerate(truth_sequence):
+                func_set.member(f'f{idx}')(MagicMock(side_effect=(value,)))
+            return func_set
+        return make_set
+
+
+    @pytest.mark.parametrize('truth_sequence,expected_key', [
+        ((False, True, True, False), 'f1'),
+        ((False, False, False), None),
+    ])
+    def test_first_true(self, truth_set_maker, truth_sequence, expected_key):
+        truth_set = truth_set_maker(truth_sequence)
+        result = truth_set.first_true('some_args')
+        assert result == expected_key
+        should_been_called = True
+        for key, func in truth_set.items():
+            if should_been_called:
+                assert func.mock_calls == [call('some_args')], \
+                    f'{key} function should`ve been called'
+            else:
+                assert func.mock_calls == [], \
+                    f'{key} function should`nt have been called'
+            if key == expected_key:
+                should_been_called = False
