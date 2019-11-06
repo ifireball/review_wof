@@ -8,6 +8,10 @@ from time import time
 from flask import Flask, render_template
 
 
+from .model.gerrit_patches import GerritPatches
+from .model import patches_view
+
+
 application = Flask(__name__)
 
 
@@ -26,11 +30,10 @@ people_states = OrderedDict()
 
 @application.route('/')
 def index():
-    people, patch_state_counts = create_report()
+    patches = GerritPatches()
     return render_template(
         'index.html.j2',
-        people=people,
-        patch_state_counts=patch_state_counts,
+        patches_list=patches.views.list.df,
     )
 
 

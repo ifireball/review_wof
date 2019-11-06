@@ -5,7 +5,6 @@
 </head>
 
 <body>
-{{ people }}
-{{ patch_state_counts }}
+{{ patches_list.to_html()|safe }}
 </body>
 </html>
