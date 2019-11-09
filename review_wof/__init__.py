@@ -10,6 +10,7 @@ from flask import Flask, render_template
 
 from .model.gerrit_patches import GerritPatches
 from .model import patches_view
+from .model import patch_reviewers_view
 
 
 application = Flask(__name__)
@@ -34,6 +35,7 @@ def index():
     return render_template(
         'index.html.j2',
         patches_list=patches.views.list.df,
+        reviewers_n_patches=patches.views.reviewers.df
     )
 
 

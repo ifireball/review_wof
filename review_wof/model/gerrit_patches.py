@@ -11,6 +11,10 @@ GERRIT_QUERY_LIMIT = 50
 GERRIT_HOST = 'gerrit.ovirt.org'
 PROJECTS = {'jenkins', 'infra-docs', 'repoman'}
 REVIEW_FLAGS = {"Code-Review"}
+BLACKLISTED_USERS = {
+    'jenkins-staging', 'jenkins@ovirt.org', 'jenkins_ro', 'zuul@ovirt.org',
+    'automation@ovirt.org',
+}
 
 
 class GerritPatches(GeneratorDSC):
@@ -32,6 +36,10 @@ class GerritPatches(GeneratorDSC):
 
     def review_flags_for(self, patch):
         return REVIEW_FLAGS
+
+    @property
+    def blacklisted_users(self):
+        return BLACKLISTED_USERS
 
     def _generate_data(self):
         patches = self._get_patches_for_timespan(
