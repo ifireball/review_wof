@@ -93,3 +93,19 @@ class FunctionSet(Mapping):
 
     def first_true(self, *args, **kwargs):
         return next((key for key, rv in self(*args, *kwargs) if rv), None)
+
+
+class DataFrameView(metaclass=ABCMeta):
+    def __init__(self, dsc):
+        self._df = None
+
+    @abstractmethod
+    def create_dataframe(self, dsc):
+        pass
+
+    def on_data_loaded(self, dsc):
+        self._df = self.create_dataframe(dsc)
+
+    @property
+    def df(self):
+        return self._df

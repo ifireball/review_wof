@@ -3,15 +3,15 @@
 from functools import partial
 from pandas import DataFrame
 
-from .base import FunctionSet
+from .base import FunctionSet, DataFrameView
 from .gerrit_patches import GerritPatches
 
 
 @GerritPatches.view('reviewers')
-class PatchReviewersView:
+class PatchReviewersView(DataFrameView):
     def __init__(self, dsc):
+        super().__init__(dsc)
         self._load_buffer = []
-        self._df = None
         self._uk_set = partial(_user_keys_set, dsc.blacklisted_users)
 
     def on_new_data(self, dsc, patch):
@@ -28,16 +28,14 @@ class PatchReviewersView:
                 [patch['url'], state, list(people_in_state)]
             )
 
-    def on_data_loaded(self, dsc):
-        self._df = DataFrame(
+    def create_dataframe(self, dsc):
+        df = DataFrame(
             self._load_buffer, columns=('patch', 'state', 'reviewers')
         )
         del self._load_buffer
-        self._df = self._df.explode('reviewers')
-
-    @property
-    def df(self):
-        return self._df
+        df = df.explode('reviewers')
+        df.reset_index(drop=True, inplace=True)
+        return df
 
 
 def _user_keys_set(blacklisted_users, user_records):

@@ -2,15 +2,15 @@
 """
 from pandas import DataFrame
 
-from .base import FunctionSet
+from .base import FunctionSet, DataFrameView
 from .gerrit_patches import GerritPatches
 
 
 @GerritPatches.view('list')
-class PatchesView:
+class PatchesView(DataFrameView):
     def __init__(self, dsc):
+        super().__init__(dsc)
         self._load_buffer = []
-        self._df = None
 
     def on_new_data(self, dsc, patch):
         record = {
@@ -21,14 +21,10 @@ class PatchesView:
         }
         self._load_buffer.append(record)
 
-    def on_data_loaded(self, dsc):
-        self._df = DataFrame(self._load_buffer)
+    def create_dataframe(self, dsc):
+        df = DataFrame(self._load_buffer)
         del self._load_buffer
-        self._df.set_index('url', inplace=True)
-
-    @property
-    def df(self):
-        return self._df
+        return df
 
     def _get_patch_state(self, dsc, patch):
         return _patch_states.first_true(
