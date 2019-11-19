@@ -9,22 +9,16 @@ Code review wall-of-fame dasboard
    yum install python36 python36-pip  # On CentOS 7
    ```
 
-2. Install [pipenv][1]:
+2. Install Python modules:
 
    ```
-   python3 -m pip install --user pipenv
+   python3 -m pip install --user -r requirements.txt
    ```
 
-   Or if you have [pipx][2]:
+   Or if you have [pipx][1]:
 
    ```
-   pipx install pipenv
-   ```
-
-3. Run development environment (With Flask)
-
-   ```
-   pipenv run flask run
+   pipx install -r requirements.txt
    ```
 
 ## Running in production mode
@@ -36,5 +30,4 @@ pipenv run gunicorn
 ```
 
 
-[1]: https://github.com/pypa/pipenv
-[2]: https://pipxproject.github.io/pipx/
+[1]: https://pipxproject.github.io/pipx/

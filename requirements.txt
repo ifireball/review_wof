@@ -1,0 +1,4 @@
+pipenv==2018.11.26
+Flask==1.1.1
+python-dotenv==0.10.3
+pandas==0.25.3
