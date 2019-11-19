@@ -10,6 +10,7 @@ review-wof = {editable = true,path = "."}
 pytest = "*"
 
 [packages]
+Flask = "*"
 review-wof = {editable = true,path = "."}
 
 [requires]
