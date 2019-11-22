@@ -4,11 +4,11 @@ import json
 from subprocess import check_output
 from time import time
 
+import yaml
+
 from .base import GeneratorDSC
 
-
 GERRIT_QUERY_LIMIT = 50
-GERRIT_HOST = 'gerrit.ovirt.org'
 PROJECTS = {'jenkins', 'infra-docs', 'repoman'}
 REVIEW_FLAGS = {"Code-Review"}
 BLACKLISTED_USERS = {
@@ -19,12 +19,19 @@ BLACKLISTED_USERS = {
 
 class GerritPatches(GeneratorDSC):
     def __init__(self, since=None, until=None):
+        with open("config.yml", 'r') as ymlfile:
+            cfg = yaml.safe_load(ymlfile)
+        host = cfg['servers'][0]
         if until is None:
             until = int(time())
         if since is None:
             since = until - (60 * 60 * 24 * 30)
-        self._since, self._until = since, until
+        self._host, self._since, self._until = host, since, until
         super().__init__()
+
+    @property
+    def host(self):
+        return self._host
 
     @property
     def since(self):
@@ -43,7 +50,7 @@ class GerritPatches(GeneratorDSC):
 
     def _generate_data(self):
         patches = self._get_patches_for_timespan(
-            GERRIT_HOST, PROJECTS, self._since, self._until
+            self._host, PROJECTS, self._since, self._until
         )
         yield from patches
 

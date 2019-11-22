@@ -17,5 +17,5 @@ setuptools.setup(
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: POSIX :: Linux",
     ],
-    install_requires = ["gunicorn", "Flask", "python-dotenv", "pandas"],
+    install_requires=["gunicorn", "Flask", "python-dotenv", "pandas", "pyyaml"]
 )
