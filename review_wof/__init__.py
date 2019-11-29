@@ -2,11 +2,8 @@
 """
 from flask import Flask, render_template
 
+from .model import patch_reviewers_view, patch_summary_view, patches_view
 from .model.gerrit_patches import GerritPatches
-from .model import patches_view
-from .model import patch_summary_view
-from .model import patch_reviewers_view
-
 
 application = Flask(__name__)
 

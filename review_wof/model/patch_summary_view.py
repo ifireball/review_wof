@@ -1,8 +1,8 @@
 """model/patch_summary_view.py - DV Showing a summary about patches
 """
+from . import patches_view
 from .base import DataFrameView
 from .gerrit_patches import GerritPatches
-from . import patches_view
 
 
 @GerritPatches.view('summary')

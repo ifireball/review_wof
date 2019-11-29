@@ -1,9 +1,11 @@
 from argparse import Namespace
 from collections import deque
-import pytest
-from unittest.mock import create_autospec, call, MagicMock
+from unittest.mock import MagicMock, call, create_autospec
 
-from review_wof.model.base import DataSource, GeneratorDSC, FunctionSet
+import pytest
+
+from review_wof.model.base import DataSource, FunctionSet, GeneratorDSC
+
 
 def test_data_source():
     class Adsc(DataSource):

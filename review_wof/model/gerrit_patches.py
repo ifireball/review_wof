@@ -6,7 +6,6 @@ from time import time
 
 from .base import GeneratorDSC
 
-
 GERRIT_QUERY_LIMIT = 50
 GERRIT_HOST = 'gerrit.ovirt.org'
 PROJECTS = {'jenkins', 'infra-docs', 'repoman'}

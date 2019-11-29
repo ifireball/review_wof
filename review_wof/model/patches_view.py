@@ -2,7 +2,7 @@
 """
 from pandas import DataFrame
 
-from .base import FunctionSet, DataFrameView
+from .base import DataFrameView, FunctionSet
 from .gerrit_patches import GerritPatches
 
 

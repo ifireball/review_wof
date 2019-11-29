@@ -1,9 +1,10 @@
 """model/patch_reviewers_view.py - DV Linking users to patches
 """
 from functools import partial
+
 from pandas import DataFrame
 
-from .base import FunctionSet, DataFrameView
+from .base import DataFrameView, FunctionSet
 from .gerrit_patches import GerritPatches
 
 
